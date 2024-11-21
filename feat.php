@@ -1,3 +1,3 @@
 <?php
 
-echo "nueva función creada em este archivo";
+echo "nueva función creada en este archivo";
