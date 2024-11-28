@@ -1,6 +1,9 @@
 <?php
 
-echo "rama feature-VSFT-9223";
-echo "En esta rama tengo el desarrollo, que actualmente no voy a poder ver en la rama main";
-echo "Este echo lo agrego para el último commit";
 
+echo "proyecto principal, rama main";
+echo "aquí soluciono un bug que había en main desde la rama 1012";
+
+echo "Aquí estoy haciendo el trabajo del primer commit";
+echo "Aquí estoy haciendo el trabajo del segundo commit";
+echo "aquí ya soluciono el bug";
