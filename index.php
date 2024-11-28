@@ -6,4 +6,4 @@ echo "aquí soluciono un bug que había en main desde la rama 1012";
 
 echo "trabajo dia 1";
 echo "trabajo dia 2";
-echo "aquí ya soluciono el bug";
+echo "trabajo listo";
