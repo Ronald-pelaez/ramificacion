@@ -5,4 +5,4 @@ echo "modificacion botón de pago";
 
 echo "trabajo dia 1 function";
 echo "trabajo dia 2 function";
-echo "trabajo final solución del bug";
+echo "trabajo listo, solucion de bug en function";
