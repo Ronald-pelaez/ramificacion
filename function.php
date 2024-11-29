@@ -3,8 +3,8 @@
 echo "Esta es una nueva función que voy a a gregar a main";
 echo "modificacion botón de pago";
 
+echo "trabajo dia 1 - function";
+echo "trabajo dia 2 en function";
+echo "solucion de bug en function";
 
-echo "pasarela commit 1 con doc";
-echo "pasarela commit 2 con doc";
-echo "solucion error pasarela prueba con fix";
 
