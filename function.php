@@ -5,4 +5,4 @@ echo "modificacion botón de pago";
 
 echo "pasarela commit 1 - doc";
 echo "pasarela commit 2 - doc";
-echo "solucion error pasarela prueba con fix";
+echo "solucion error pasarela";
