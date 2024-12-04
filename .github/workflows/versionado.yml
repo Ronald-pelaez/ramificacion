@@ -35,16 +35,17 @@ jobs:
 
       - name: Publish to GitBook
         run: |
-          
           VERSION=$(echo "${GITHUB_REF}" | sed 's/refs\/tags\///')
 
-          
-          curl -X PATCH "https://api.gitbook.com/v1/orgs/5LsYMP0YdKt707SByGgu/spaces" \
+          curl -X POST "https://api.gitbook.com/v1/orgs/5LsYMP0YdKt707SByGgu/spaces" \
           -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
           -H "Content-Type: application/json" \
           -d '{
-            "title": "New release version '"${VERSION}"'",
-            "content": "This is the updated content for version '"${VERSION}"'."
+            "title": "Release v'"${VERSION}"'",
+            "emoji": "1f389",
+            "visibility": "public",
+            "editMode": "live",
+            "description": "Release content for version v'"${VERSION}"'"
           }'
 
       - name: Debug output
