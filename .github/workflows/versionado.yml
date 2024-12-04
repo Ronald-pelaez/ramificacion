@@ -3,9 +3,9 @@ name: Release to GitBook
 on:
   push:
     tags:
-      - 'v*.*.*'  # Se activará cuando haya un nuevo tag con formato vX.Y.Z
+      - 'v*.*.*'
     branches:
-      - 'main'   # También se activa cuando haya un push en la rama main
+      - 'main'
 
 jobs:
   release:
@@ -27,7 +27,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm ci  # Usamos npm ci para una instalación más confiable de dependencias
+          npm ci  
 
       - name: Run semantic-release
         run: |
@@ -37,15 +37,15 @@ jobs:
 
       - name: Publish to GitBook
         run: |
-          # Extraemos la versión del tag (sin el prefijo 'refs/tags/')
+          
           VERSION=$(echo "${GITHUB_REF}" | sed 's/refs\/tags\///')
 
-          # Publicamos la información en GitBook
+         
           curl -X POST https://api.gitbook.com/v1/spaces/${{ secrets.GITBOOK_SPACE_ID }}/content \
           -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
           -H "Content-Type: application/json" \
           -d '{
-            "type": "commit",
+            "type": "page",
             "message": "New release v${VERSION}",
             "content": "This is the content from the release v${VERSION}. More details can be added here.",
             "parent_id": "root"
