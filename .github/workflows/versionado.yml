@@ -4,10 +4,17 @@ on:
   push:
     tags:
       - 'v*.*.*'
+    branches:
+      - 'main'
 
 jobs:
   release:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
 
     steps:
       - name: Check out repository
@@ -24,7 +31,7 @@ jobs:
 
       - name: Run semantic-release
         run: |
-          npx semantic-release
+          npx semantic-release 
 
       - name: Publish to GitBook
         run: |
