@@ -37,14 +37,13 @@ jobs:
 
       - name: Publish to GitBook
         run: |
-          
           VERSION=$(echo "${GITHUB_REF}" | sed 's/refs\/tags\///')
 
-         
-          curl -X PATCH "https://api.gitbook.com/v1/spaces/lDjUpn42IqZ3iP1cWWjX" \
+          curl -X PATCH "https://api.gitbook.com/v1/spaces/lDjUpn42IqZ3iP1cWWjX/pages/your_page_id" \
           -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
           -H "Content-Type: application/json" \
           -d '{
-            "message": "New release version ${VERSION}",
-            "content": "This release version includes new updates for version ${VERSION}."
+            "title": "New release version ${VERSION}",
+            "content": "This is the updated content for version ${VERSION}.",
+            "parent_id": "root"
           }'
