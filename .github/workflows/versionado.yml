@@ -1,44 +1,39 @@
-name: Release
+name: Release to GitBook
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*.*.*'
 
 jobs:
   release:
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 21
-      - run: npm ci
-      - run: npm run build  # Suponiendo que el changelog se genera en el build
-      - run: |
-          # Verificar si el archivo CHANGELOG.md está presente en el directorio raíz o en otro directorio
-          if [ -f "./CHANGELOG.md" ]; then
-            content=$(cat ./CHANGELOG.md)
-          else
-            echo "CHANGELOG.md no encontrado en el directorio raíz. Comprobando node_modules..."
-            content=$(cat node_modules/@semantic-release/git/node_modules/human-signals/CHANGELOG.md)
-          fi
-          
-          # Crear el cuerpo de la solicitud JSON
-          json_data=$(jq -n --arg title "Changelog" --arg content "$content" '{title: $title, content: $content}')
-          
-          # Enviar la solicitud POST a la API de GitBook
-          curl -X POST "https://api.gitbook.com/v1/spaces/${{ secrets.GB_SPACE_ID }}/content" \
-            -H "Authorization: Bearer ${{ secrets.GB_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d "$json_data"
-        env:
-          GB_API_KEY: ${{ secrets.GB_API_KEY }}
-          GB_SPACE_ID: ${{ secrets.GB_SPACE_ID }}
+          node-version: '21'
+
+      - name: Install dependencies
+        run: |
+          npm install
+
+      - name: Run semantic-release
+        run: |
+          npx semantic-release
+
+      - name: Publish to GitBook
+        run: |
+          curl -X POST https://api.gitbook.com/spaces/${{ secrets.GITBOOK_SPACE_ID }}/content \
+          -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "type": "commit",
+            "message": "New release ${GITHUB_REF}",
+            "content": "This is the content from the release.",
+            "parent_id": "root"
+          }'
