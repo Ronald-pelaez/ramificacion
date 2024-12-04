@@ -37,16 +37,15 @@ jobs:
 
       - name: Publish to GitBook
         run: |
-          
+         
           VERSION=$(echo "${GITHUB_REF}" | sed 's/refs\/tags\///')
 
          
-          curl -X POST https://api.gitbook.com/v1/spaces/${{ secrets.GITBOOK_SPACE_ID }}/content \
+          curl -X POST "https://api.gitbook.com/v1/spaces/lDjUpn42IqZ3iP1cWWjX/duplicate" \
           -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
           -H "Content-Type: application/json" \
           -d '{
-            "type": "page",
-            "message": "New release v${VERSION}",
-            "content": "This is the content from the release v${VERSION}. More details can be added here.",
-            "parent_id": "root"
+            "message": "Duplicating content for release v${VERSION}",
+            "space": "lDjUpn42IqZ3iP1cWWjX",  # Este es el ID del espacio que quieres duplicar
+            "include": "all"  # Esto puede cambiar dependiendo de qué contenido deseas duplicar
           }'
