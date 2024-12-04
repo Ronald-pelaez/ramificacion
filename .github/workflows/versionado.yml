@@ -1,4 +1,3 @@
-
 name: Release
 
 on:
@@ -26,3 +25,20 @@ jobs:
       - run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  sync-with-gitbook:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sincronizar con GitBook
+        env:
+          GITBOOK_API_KEY: ${{ gb_api_5uQSr4OS3ED4d6UsyUhYFQu894Xs2P9uypr6fRDd }}
+        run: |
+          curl -X POST "https://api.gitbook.com/v1/spaces/<lDjUpn42IqZ3iP1cWWjX>/content" \
+          -H "Authorization: Bearer $GITBOOK_API_KEY" \
+          -H "Content-Type: application/json" \
+          -d '{
+                "title": "Changelog",
+                "content": "'"$(cat CHANGELOG.md | jq -Rs .)"'"
+              }'
