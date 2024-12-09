@@ -1,11 +1,7 @@
 name: Publicar en GitBook
 
-on:
-  release:
-    types:
-      - created # Para cualquier tipo de release creado
-      - published # Solo para releases publicados
-      - prereleased # Para pre-releases
+on: release
+
 jobs:
   publish:
     runs-on: ubuntu-latest
