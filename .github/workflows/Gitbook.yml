@@ -1,9 +1,10 @@
 name: Publicar en GitBook
 
 on:
-  release:
-    types:
-      - published # Se ejecuta cuando un release es publicado
+  push:
+    branches:
+      - main
+      - 'releases/**'
 
 jobs:
   publish:
