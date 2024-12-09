@@ -37,6 +37,13 @@ jobs:
         run: |
           VERSION=$(echo "${GITHUB_REF}" | sed 's/refs\/tags\///')
 
+          # Obtén el contenido del release desde la API de GitHub
+          RELEASE_CONTENT=$(curl -s \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${VERSION}" | jq -r '.body')
+
+          # Publica el contenido del release en GitBook
           curl -X POST "https://api.gitbook.com/v1/spaces/lDjUpn42IqZ3iP1cWWjX/content/import" \
           -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
           -H "Content-Type: application/json" \
@@ -45,7 +52,7 @@ jobs:
             "emoji": "1f389",
             "visibility": "public",
             "editMode": "live",
-            "description": "Release content for version v'"${VERSION}"'"
+            "description": "'"${RELEASE_CONTENT}"'"
           }'
 
       - name: Debug output
