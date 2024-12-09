@@ -18,43 +18,61 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '21'
 
       - name: Install dependencies
-        run: |
-          npm install
+        run: npm install
 
       - name: Run semantic-release
-        run: |
-          npx semantic-release
+        run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to GitBook
         run: |
+          # Extraer la versión desde el tag
           VERSION=$(echo "${GITHUB_REF}" | sed 's/refs\/tags\///')
 
-          # Obtén el contenido del release desde la API de GitHub
+          # Validar si VERSION está vacío
+          if [ -z "$VERSION" ]; then
+            echo "Error: La variable VERSION está vacía. Asegúrate de ejecutar desde un tag."
+            exit 1
+          fi
+
+          # Obtener el contenido del release desde la API de GitHub
           RELEASE_CONTENT=$(curl -s \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/${{ github.repository }}/releases/tags/${VERSION}" | jq -r '.body')
 
-          # Crear un archivo markdown temporal con el contenido del release
-          echo -e "# Release v${VERSION}\n\n${RELEASE_CONTENT}" > release.md
+          # Validar si se obtuvo contenido
+          if [ -z "$RELEASE_CONTENT" ]; then
+            echo "Error: No se encontró contenido para el release."
+            exit 1
+          fi
 
-          # Sube el archivo a un servicio accesible (ejemplo: GitHub Pages o un almacenamiento público)
-          UPLOAD_URL="https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/releases/v${VERSION}.md"
+          # Crear un archivo markdown temporal
+          mkdir -p releases
+          echo -e "# Release v${VERSION}\n\n${RELEASE_CONTENT}" > releases/v${VERSION}.md
+
+          # Cambiar a la rama gh-pages
           git checkout --orphan gh-pages
-          mv release.md releases/v${VERSION}.md
+
+          # Agregar y subir el archivo
           git add releases/v${VERSION}.md
           git commit -m "Add release notes for v${VERSION}"
-          git push origin gh-pages
+          git push -f origin gh-pages
 
-          # Publica el contenido en GitBook usando la URL del archivo
+          # Generar la URL pública del archivo
+          UPLOAD_URL="https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/releases/v${VERSION}.md"
+
+          # Publicar el contenido en GitBook
           curl -X POST "https://api.gitbook.com/v1/spaces/lDjUpn42IqZ3iP1cWWjX/content/import" \
           -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
           -H "Content-Type: application/json" \
@@ -66,7 +84,5 @@ jobs:
             "editMode": "live"
           }'
 
-
       - name: Debug output
-        run: |
-          echo "Published version ${VERSION} to GitBook."
+        run: echo "Published version ${VERSION} to GitBook."
