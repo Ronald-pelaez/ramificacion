@@ -1,6 +1,10 @@
 name: Publicar en GitBook
 
-on: release
+on:
+  push:
+    branches:
+      - main
+      - 'releases/**'
 
 jobs:
   publish:
