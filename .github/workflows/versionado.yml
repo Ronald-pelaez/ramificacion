@@ -37,7 +37,7 @@ jobs:
         run: |
           VERSION=$(echo "${GITHUB_REF}" | sed 's/refs\/tags\///')
 
-          curl -X POST "https://api.gitbook.com/v1/orgs/5LsYMP0YdKt707SByGgu/spaces" \
+          curl -X POST "https://api.gitbook.com/v1/spaces/lDjUpn42IqZ3iP1cWWjX/content/import" \
           -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
           -H "Content-Type: application/json" \
           -d '{
