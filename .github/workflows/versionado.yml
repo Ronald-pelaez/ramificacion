@@ -43,17 +43,29 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/${{ github.repository }}/releases/tags/${VERSION}" | jq -r '.body')
 
-          # Publica el contenido del release en GitBook
+          # Crear un archivo markdown temporal con el contenido del release
+          echo -e "# Release v${VERSION}\n\n${RELEASE_CONTENT}" > release.md
+
+          # Sube el archivo a un servicio accesible (ejemplo: GitHub Pages o un almacenamiento público)
+          UPLOAD_URL="https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/releases/v${VERSION}.md"
+          git checkout --orphan gh-pages
+          mv release.md releases/v${VERSION}.md
+          git add releases/v${VERSION}.md
+          git commit -m "Add release notes for v${VERSION}"
+          git push origin gh-pages
+
+          # Publica el contenido en GitBook usando la URL del archivo
           curl -X POST "https://api.gitbook.com/v1/spaces/lDjUpn42IqZ3iP1cWWjX/content/import" \
           -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
           -H "Content-Type: application/json" \
           -d '{
+            "url": "'"${UPLOAD_URL}"'",
             "title": "Release v'"${VERSION}"'",
             "emoji": "1f389",
             "visibility": "public",
-            "editMode": "live",
-            "description": "'"${RELEASE_CONTENT}"'"
+            "editMode": "live"
           }'
+
 
       - name: Debug output
         run: |
