@@ -1,0 +1,39 @@
+name: Publicar en GitBook
+
+on:
+  release:
+    types:
+      - published # Se ejecuta cuando un release es publicado
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generar URL del release
+        run: |
+          # Extraer la versión desde el release
+          VERSION=${{ github.event.release.tag_name }}
+
+          # Generar la URL pública para GitHub Pages
+          UPLOAD_URL="https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/releases/v${VERSION}.md"
+
+          echo "URL del archivo para GitBook: ${UPLOAD_URL}"
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "UPLOAD_URL=${UPLOAD_URL}" >> $GITHUB_ENV
+
+      - name: Publicar en GitBook
+        run: |
+          curl -X POST "https://api.gitbook.com/v1/spaces/lDjUpn42IqZ3iP1cWWjX/content/import" \
+          -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "url": "'"${UPLOAD_URL}"'",
+            "title": "Release v'"${VERSION}"'",
+            "emoji": "1f389",
+            "visibility": "public",
+            "editMode": "live"
+          }'
+
+      - name: Debug output
+        run: echo "Publicado release ${VERSION} en GitBook con URL ${UPLOAD_URL}."
