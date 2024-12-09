@@ -1,10 +1,10 @@
 name: Publicar en GitBook
 
 on:
-  push:
-    branches:
-      - main
-      - 'releases/**'
+  release:
+    types:
+      - published # Se ejecuta cuando un release es publicado
+
 
 jobs:
   publish:
@@ -35,19 +35,21 @@ jobs:
           echo "Archivo de release generado: releases/${VERSION}.md"
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
-      # Paso 3: Subir el archivo .md a la rama gh-pages
+      # Paso 3: Crear o actualizar la rama gh-pages
       - name: Subir archivo a gh-pages
         run: |
-          # Cambiar a la rama gh-pages (crear si no existe)
+          # Crear la rama gh-pages si no existe
           git fetch origin gh-pages || git checkout --orphan gh-pages
-          git checkout gh-pages
 
-          # Mover el archivo generado
+          # Asegurarse de estar en la rama gh-pages
+          git checkout gh-pages || git checkout --orphan gh-pages
+
+          # Copiar el archivo generado al root de gh-pages
           mv releases/${VERSION}.md .
 
-          # Confirmar los cambios
+          # Confirmar y subir los cambios
           git add ${VERSION}.md
-          git commit -m "Añadir notas del release ${VERSION}"
+          git commit -m "Añadir notas del release ${VERSION}" || echo "Sin cambios que confirmar"
           git push origin gh-pages
           
           # Generar la URL del archivo subido
@@ -76,7 +78,7 @@ jobs:
             "editMode": "live"
           }'
 
-      # Paso 5: Mostrar mensaje de confirmación
+      # Paso 5: Confirmar éxito
       - name: Confirmación
         run: |
           echo "Release ${VERSION} publicado en GitBook con URL: ${UPLOAD_URL}"
