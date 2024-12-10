@@ -8,6 +8,12 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write # Permisos necesarios para modificar la rama gh-pages
+      issues: write
+      pull-requests: write
+
 
     steps:
       - name: Configurar identidad de Git
@@ -64,3 +70,10 @@ jobs:
             "visibility": "public",
             "editMode": "live"
           }'
+
+
+      # Paso 5: Confirmar éxito
+      - name: Confirmación
+        run: |
+          echo "Release ${VERSION} publicado en GitBook con URL: ${UPLOAD_URL}"
+
