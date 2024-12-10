@@ -1,10 +1,11 @@
 name: Publicar en GitBook
 
 on:
-  release:
+  workflow_run:
+    workflows:
+      - Versionado # Nombre del flujo que activa este (el `name` de versionado.yml)
     types:
-      - published # Se ejecuta cuando un release es publicado
-
+      - completed # Se activa cuando el flujo de "versionado" termina
 jobs:
   publish:
     runs-on: ubuntu-latest
