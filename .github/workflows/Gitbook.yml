@@ -21,39 +21,32 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
       - name: Configure Git Identity
         run: |
           git config --global user.name "${GIT_USER_NAME}"
           git config --global user.email "${GIT_USER_EMAIL}"
-
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: repo
-
       - name: Prepare gh-pages Branch
         run: |
           git fetch origin gh-pages || git checkout --orphan gh-pages
           git checkout gh-pages
-
       - name: Generate Release Notes  # Example: generate dynamically
         run: |
           echo "# Release ${VERSION}" > release.md
           # Add more content to release.md as needed
-
       - name: Commit and Push Changes
         run: |
           git add release.md
           git commit -m "Publish Release ${VERSION}"
           git push origin gh-pages
-
       - name: Set Upload URL
         run: |
-          UPLOAD_URL="https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/release.md"
+          UPLOAD_URL="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/gh-pages/release.md"
           echo "UPLOAD_URL=$UPLOAD_URL" >> $GITHUB_ENV
-
       - name: Publish to GitBook
         run: |
           JSON_PAYLOAD=$(printf '{"source": "%s", "title": "Release v%s", "emoji": "1f389", "visibility": "public", "editMode": "live"}' "$UPLOAD_URL" "$VERSION")
@@ -61,7 +54,6 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "$JSON_PAYLOAD"
-
       - name: Confirm Success
         run: |
           echo "Release ${VERSION} published to GitBook with URL: ${UPLOAD_URL}"
