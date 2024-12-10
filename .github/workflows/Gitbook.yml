@@ -5,82 +5,75 @@ on:
     types:
       - published # Se ejecuta cuando un release es publicado
 
-
 jobs:
   publish:
     runs-on: ubuntu-latest
+    
     permissions:
       contents: write # Permisos necesarios para modificar la rama gh-pages
       issues: write
       pull-requests: write
 
+
     steps:
-      # Paso 1: Clonar el repositorio
-      - name: Check out repository
+      - name: Configurar identidad de Git
+        run: |
+          git config --global user.name "Ronald Pelaez"
+          git config --global user.email "ronaldpelaez201@gmail.com"
+
+      - name: Clonar el repositorio
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # Paso 2: Crear el archivo .md con las notas del release
-      - name: Generar archivo de release
-        run: |
-          # Extraer la versión y las notas del release
-          VERSION=${{ github.event.release.tag_name }}
-          RELEASE_CONTENT=${{ github.event.release.body }}
-
-          # Crear carpeta para los releases si no existe
-          mkdir -p releases
-
-          # Generar archivo .md con las notas del release
-          echo -e "# Release ${VERSION}\n\n${RELEASE_CONTENT}" > releases/${VERSION}.md
-          
-          echo "Archivo de release generado: releases/${VERSION}.md"
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-
-      # Paso 3: Crear o actualizar la rama gh-pages
-      - name: Subir archivo a gh-pages
+      - name: Cambiar a la rama gh-pages
         run: |
           # Crear la rama gh-pages si no existe
           git fetch origin gh-pages || git checkout --orphan gh-pages
+          git checkout gh-pages
+          git reset --hard
 
-          # Asegurarse de estar en la rama gh-pages
-          git checkout gh-pages || git checkout --orphan gh-pages
-
-          # Copiar el archivo generado al root de gh-pages
+      - name: Mover las notas del release
+        env:
+          VERSION: ${{ github.event.release.tag_name }}
+        run: |
+          mkdir -p releases
           mv releases/${VERSION}.md .
 
-          # Confirmar y subir los cambios
+      - name: Confirmar y enviar los cambios
+        env:
+          VERSION: ${{ github.event.release.tag_name }}
+        run: |
           git add ${VERSION}.md
-          git commit -m "Añadir notas del release ${VERSION}" || echo "Sin cambios que confirmar"
+          git commit -m "Añadir notas del release ${VERSION}"
           git push origin gh-pages
-          
-          # Generar la URL del archivo subido
+
+      - name: Generar la URL del archivo subido
+        env:
+          VERSION: ${{ github.event.release.tag_name }}
+        run: |
           UPLOAD_URL="https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/${VERSION}.md"
           echo "Archivo subido a: ${UPLOAD_URL}"
           echo "UPLOAD_URL=${UPLOAD_URL}" >> $GITHUB_ENV
 
-      # Paso 4: Publicar en GitBook
       - name: Publicar en GitBook
+        env:
+          GITBOOK_API_TOKEN: ${{ secrets.GITBOOK_API_TOKEN }}
         run: |
-          # Obtener variables de entorno
-          VERSION=${{ env.VERSION }}
-          UPLOAD_URL=${{ env.UPLOAD_URL }}
-
-          # Publicar el archivo en GitBook
           curl -X POST "https://api.gitbook.com/v1/spaces/lDjUpn42IqZ3iP1cWWjX/content/import" \
-          -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
+          -H "Authorization: Bearer $GITBOOK_API_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{
-            "source": {
-              "url": "'"${UPLOAD_URL}"'"
-            },
-            "title": "Release '"${VERSION}"'",
+            "source": "'"${UPLOAD_URL}"'",
+            "title": "Release v'"${VERSION}"'",
             "emoji": "1f389",
             "visibility": "public",
             "editMode": "live"
           }'
 
+
       # Paso 5: Confirmar éxito
       - name: Confirmación
         run: |
           echo "Release ${VERSION} publicado en GitBook con URL: ${UPLOAD_URL}"
+
