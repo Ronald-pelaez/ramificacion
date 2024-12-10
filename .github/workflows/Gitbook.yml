@@ -9,72 +9,49 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    
     permissions:
-      contents: write # Permisos necesarios para modificar la rama gh-pages
+      contents: write
       issues: write
       pull-requests: write
-
-
+    env:
+      VERSION: ${{ github.event.release.tag_name }}
+      GIT_USER_NAME: "Ronald Pelaez"
+      GIT_USER_EMAIL: "ronaldpelaez201@gmail.com"
+      GITBOOK_SPACE: "your_gitbook_space_id"  # Replace with your space ID
     steps:
-      - name: Configurar identidad de Git
+      - name: Configure Git Identity
         run: |
-          git config --global user.name "Ronald Pelaez"
-          git config --global user.email "ronaldpelaez201@gmail.com"
-
-      - name: Clonar el repositorio
+          git config --global user.name "${GIT_USER_NAME}"
+          git config --global user.email "${GIT_USER_EMAIL}"
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Cambiar a la rama gh-pages
+          path: repo
+      - name: Prepare gh-pages Branch
         run: |
-          # Crear la rama gh-pages si no existe
           git fetch origin gh-pages || git checkout --orphan gh-pages
           git checkout gh-pages
-          git reset --hard
-
-      - name: Mover las notas del release
-        env:
-          VERSION: ${{ github.event.release.tag_name }}
+      - name: Generate Release Notes  # Example: generate dynamically
         run: |
-          mkdir -p releases
-          mv releases/${VERSION}.md .
-
-      - name: Confirmar y enviar los cambios
-        env:
-          VERSION: ${{ github.event.release.tag_name }}
+          echo "# Release ${VERSION}" > release.md
+          # Add more content to release.md as needed
+      - name: Commit and Push Changes
         run: |
-          git add ${VERSION}.md
-          git commit -m "Añadir notas del release ${VERSION}"
+          git add release.md
+          git commit -m "Publish Release ${VERSION}"
           git push origin gh-pages
-
-      - name: Generar la URL del archivo subido
-        env:
-          VERSION: ${{ github.event.release.tag_name }}
+      - name: Set Upload URL
         run: |
-          UPLOAD_URL="https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/${VERSION}.md"
-          echo "Archivo subido a: ${UPLOAD_URL}"
-          echo "UPLOAD_URL=${UPLOAD_URL}" >> $GITHUB_ENV
-
-      - name: Publicar en GitBook
-        env:
-          GITBOOK_API_TOKEN: ${{ secrets.GITBOOK_API_TOKEN }}
+          UPLOAD_URL="https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/release.md"
+          echo "UPLOAD_URL=$UPLOAD_URL" >> $GITHUB_ENV
+      - name: Publish to GitBook
         run: |
-          curl -X POST "https://api.gitbook.com/v1/spaces/lDjUpn42IqZ3iP1cWWjX/content/import" \
-          -H "Authorization: Bearer $GITBOOK_API_TOKEN" \
-          -H "Content-Type: application/json" \
-          -d '{
-            "source": "'"${UPLOAD_URL}"'",
-            "title": "Release v'"${VERSION}"'",
-            "emoji": "1f389",
-            "visibility": "public",
-            "editMode": "live"
-          }'
-
-
-      # Paso 5: Confirmar éxito
-      - name: Confirmación
+          JSON_PAYLOAD=$(printf '{"source": "%s", "title": "Release v%s", "emoji": "1f389", "visibility": "public", "editMode": "live"}' "$UPLOAD_URL" "$VERSION")
+          curl -X POST "https://api.gitbook.com/v1/spaces/${GITBOOK_SPACE}/content/import" \
+            -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$JSON_PAYLOAD"
+      - name: Confirm Success
         run: |
-          echo "Release ${VERSION} publicado en GitBook con URL: ${UPLOAD_URL}"
-
+          echo "Release ${VERSION} published to GitBook with URL: ${UPLOAD_URL}"
