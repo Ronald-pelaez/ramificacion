@@ -9,62 +9,49 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    
     permissions:
-      contents: write # Permisos necesarios para modificar la rama gh-pages
+      contents: write
       issues: write
       pull-requests: write
-
     env:
       VERSION: ${{ github.event.release.tag_name }}
-      UPLOAD_URL: https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/${{ github.event.release.tag_name }}.md
       GIT_USER_NAME: "Ronald Pelaez"
       GIT_USER_EMAIL: "ronaldpelaez201@gmail.com"
-
+      GITBOOK_SPACE: "your_gitbook_space_id"  # Replace with your space ID
     steps:
       - name: Configure Git Identity
         run: |
           git config --global user.name "${GIT_USER_NAME}"
           git config --global user.email "${GIT_USER_EMAIL}"
-
-      - name: Clone Repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
+          path: repo
       - name: Prepare gh-pages Branch
         run: |
           git fetch origin gh-pages || git checkout --orphan gh-pages
           git checkout gh-pages
-          git reset --hard
-
-      - name: Move Release Notes
+      - name: Generate Release Notes  # Example: generate dynamically
         run: |
-          mkdir -p releases
-          mv releases/${VERSION}.md .
-
+          echo "# Release ${VERSION}" > release.md
+          # Add more content to release.md as needed
       - name: Commit and Push Changes
         run: |
-          git add ${VERSION}.md
-          git commit -m "Añadir notas del release ${VERSION}"
+          git add release.md
+          git commit -m "Publish Release ${VERSION}"
           git push origin gh-pages
-
-      - name: Set Uploaded File URL
-        run: echo "UPLOAD_URL=${UPLOAD_URL}" >> $GITHUB_ENV
-
+      - name: Set Upload URL
+        run: |
+          UPLOAD_URL="https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/release.md"
+          echo "UPLOAD_URL=$UPLOAD_URL" >> $GITHUB_ENV
       - name: Publish to GitBook
         run: |
-          curl -X POST "https://api.gitbook.com/v1/spaces/lDjUpn42IqZ3iP1cWWjX/content/import" \
-          -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
-          -H "Content-Type: application/json" \
-          -d '{
-            "source": "'"${UPLOAD_URL}"'",
-            "title": "Release v'"${VERSION}"'",
-            "emoji": "1f389",
-            "visibility": "public",
-            "editMode": "live"
-          }'
-
+          JSON_PAYLOAD=$(printf '{"source": "%s", "title": "Release v%s", "emoji": "1f389", "visibility": "public", "editMode": "live"}' "$UPLOAD_URL" "$VERSION")
+          curl -X POST "https://api.gitbook.com/v1/spaces/${GITBOOK_SPACE}/content/import" \
+            -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$JSON_PAYLOAD"
       - name: Confirm Success
         run: |
-          echo "Release ${VERSION} publicado en GitBook con URL: ${UPLOAD_URL}"
+          echo "Release ${VERSION} published to GitBook with URL: ${UPLOAD_URL}"
