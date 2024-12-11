@@ -53,7 +53,7 @@ jobs:
       - name: Commit and Push Changes
         run: |
           git add release-notes.md
-          git commit -m "Publish Release ${{ github.event.release.tag_name }}"
+          git commit --allow-empty -m "Publish Release ${{ github.event.release.tag_name }}"
           git push origin gh-pages
 
       - name: Depurar variables
