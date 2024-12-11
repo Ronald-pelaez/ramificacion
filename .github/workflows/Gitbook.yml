@@ -1,8 +1,10 @@
 name: Publish Release Notes to GitBook
 
 on:
-  release:
-    -on
+  push:
+    branches:
+      - main
+      - 'releases/**'
 
 permissions:
   contents: write
@@ -37,7 +39,7 @@ jobs:
           echo "Generated on $(date)" >> release-notes.md
           # Add extra notes if needed, e.g., detailed changelog
 
-      # Step 4: Commit and Push Changes to gh-pages Branch
+      # Step 4: Commit and Push Changes
       - name: Commit and Push Changes
         run: |
           git fetch origin gh-pages:gh-pages || git checkout --orphan gh-pages
@@ -50,7 +52,7 @@ jobs:
             echo "No changes to commit."
           fi
 
-      # Step 5: Set UPLOAD_URL for the GitBook API
+      # Step 5: Set UPLOAD_URL
       - name: Set UPLOAD_URL
         run: |
           echo "UPLOAD_URL=https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/release-notes.md" >> $GITHUB_ENV
