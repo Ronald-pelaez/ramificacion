@@ -8,6 +8,6 @@ echo "trabajo dia 1";
 echo "trabajo dia 2";
 echo "trabajo listo";
 echo "";
-echo "";
+
 
 
