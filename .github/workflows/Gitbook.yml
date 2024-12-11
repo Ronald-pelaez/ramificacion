@@ -1,10 +1,9 @@
 name: Publish Release Notes to GitBook
 
 on:
-  push:
-    branches:
-      - main
-      - 'releases/**'
+  release:
+    types:
+      - published
 
 permissions:
   contents: write
@@ -17,29 +16,25 @@ jobs:
 
     env:
       VERSION: ${{ github.event.release.tag_name }}
-      GITBOOK_SPACE: ${{ secrets.GITBOOK_SPACE }} # Store your GitBook space ID in a secret
+      GITBOOK_SPACE: ${{ secrets.GB_SPACE_ID }}
+      GITBOOK_API_TOKEN: ${{ secrets.GITBOOK_API_TOKEN }}
 
     steps:
-      # Step 1: Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # Step 2: Configure Git Identity
       - name: Configure Git Identity
         run: |
           git config --global user.name "${{ github.actor }}"
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
 
-      # Step 3: Generate Release Notes
       - name: Generate Release Notes
         run: |
           echo "# Release ${{ github.event.release.tag_name }}" > release-notes.md
           echo "Generated on $(date)" >> release-notes.md
-          # Add extra notes if needed, e.g., detailed changelog
 
-      # Step 4: Commit and Push Changes
       - name: Commit and Push Changes
         run: |
           git fetch origin gh-pages:gh-pages || git checkout --orphan gh-pages
@@ -52,16 +47,10 @@ jobs:
             echo "No changes to commit."
           fi
 
-      # Step 5: Set UPLOAD_URL
       - name: Set UPLOAD_URL
         run: |
           echo "UPLOAD_URL=https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/release-notes.md" >> $GITHUB_ENV
 
-      # Step 6: Debug UPLOAD_URL (optional)
-      - name: Debug UPLOAD_URL
-        run: echo "UPLOAD_URL=$UPLOAD_URL"
-
-      # Step 7: Publish to GitBook
       - name: Publish to GitBook
         env:
           UPLOAD_URL: ${{ env.UPLOAD_URL }}
