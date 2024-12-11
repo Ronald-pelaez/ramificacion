@@ -1,7 +1,7 @@
 name: Publish Release Notes to GitBook
 
 on:
-  releases:
+  release:
     types:
       - published
 
