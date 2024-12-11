@@ -2,8 +2,7 @@ name: Publish Release Notes to GitBook
 
 on:
   release:
-    types:
-      - published
+    -on
 
 permissions:
   contents: write
