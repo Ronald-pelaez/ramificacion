@@ -34,6 +34,7 @@ jobs:
         run: |
           echo "# Release ${{ github.event.release.tag_name }}" > release-notes.md
           echo "Generated on $(date)" >> release-notes.md
+          # Aquí puedes agregar más detalles sobre el release si es necesario
 
       - name: Commit and Push Changes
         run: |
