@@ -22,6 +22,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Generate Release Notes
+        run: |
+          echo "# Release ${{ github.event.release.tag_name }}" > release-notes.md
+          # Add more content to release-notes.md as needed
+
+      - name: Commit and Push Changes
+        run: |
+          git add release-notes.md
+          git commit --allow-empty -m "Publish Release ${{ github.event.release.tag_name }}"
+          git push origin gh-pages
+
+      - name: Set UPLOAD_URL
+        run: echo "UPLOAD_URL=https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/release-notes.md" >> $GITHUB_ENV
+
+      - name: Debug UPLOAD_URL
+        run: echo "UPLOAD_URL=$UPLOAD_URL"
+
       - name: Publish to GitBook
         env:
           UPLOAD_URL: ${{ github.event.repository.html_url }}/gh-pages/release-notes.md
@@ -42,19 +59,9 @@ jobs:
           git fetch origin gh-pages || git checkout --orphan gh-pages
           git checkout gh-pages
 
-      - name: Generate Release Notes
-        run: |
-          echo "# Release ${{ github.event.release.tag_name }}" > release-notes.md
-          # Add more content to release-notes.md as needed
       - name: Verificar contenido de gh-pages
         run:
           git ls-tree -r gh-pages
-
-      - name: Commit and Push Changes
-        run: |
-          git add release-notes.md
-          git commit --allow-empty -m "Publish Release ${{ github.event.release.tag_name }}"
-          git push origin gh-pages
 
       - name: Depurar variables
         run: |
