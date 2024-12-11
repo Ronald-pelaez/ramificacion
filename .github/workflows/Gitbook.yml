@@ -20,7 +20,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth:
+          0- name: Publish to GitBook
+        env:
+          UPLOAD_URL: ${{ github.event.repository.html_url }}/gh-pages/release-notes.md
+        run: |
+          JSON_PAYLOAD=$(printf '{"source": "%s", "title": "Release v%s", "emoji": "1f389", "visibility": "public", "editMode": "live"}' "$UPLOAD_URL" "${{ github.event.release.tag_name }}")
+          curl -v -X POST "https://api.gitbook.com/v1/spaces/${{ env.GITBOOK_SPACE }}/content/import" \
+            -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$JSON_PAYLOAD"
 
       - name: Configure Git Identity
         run: |
