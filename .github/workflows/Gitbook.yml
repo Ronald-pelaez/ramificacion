@@ -1,10 +1,9 @@
-name: Publicar en GitBook
+name: Publish Release Notes to GitBook
 
 on:
   push:
-    branches:
-      - main
-      - 'releases/**'
+    tags:
+      - 'v*'
 
 jobs:
   publish:
@@ -13,71 +12,64 @@ jobs:
       contents: write
       issues: write
       pull-requests: write
+
     env:
       VERSION: ${{ github.event.release.tag_name }}
-      GITBOOK_SPACE: "lDjUpn42IqZ3iP1cWWjX"
+      GITBOOK_SPACE: ${{ secrets.GITBOOK_SPACE }} # Store your GitBook space ID in a secret
+
     steps:
+      # Step 1: Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Generate Release Notes
-        run: |
-          echo "# Release ${{ github.event.release.tag_name }}" > release-notes.md
-          # Add more content to release-notes.md as needed
-
-      - name: Commit and Push Changes
-        run: |
-          git add release-notes.md
-          git commit --allow-empty -m "Publish Release ${{ github.event.release.tag_name }}"
-          git push origin gh-pages
-
-      - name: Set UPLOAD_URL
-        run: echo "UPLOAD_URL=https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/release-notes.md" >> $GITHUB_ENV
-
-      - name: Debug UPLOAD_URL
-        run: echo "UPLOAD_URL=$UPLOAD_URL"
-
-      - name: Publish to GitBook
-        env:
-          UPLOAD_URL: ${{ github.event.repository.html_url }}/gh-pages/release-notes.md
-        run: |
-          JSON_PAYLOAD=$(printf '{"source": "%s", "title": "Release v%s", "emoji": "1f389", "visibility": "public", "editMode": "live"}' "$UPLOAD_URL" "${{ github.event.release.tag_name }}")
-          curl -v -X POST "https://api.gitbook.com/v1/spaces/${{ env.GITBOOK_SPACE }}/content/import" \
-            -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d "$JSON_PAYLOAD"
-
+      # Step 2: Configure Git Identity
       - name: Configure Git Identity
         run: |
           git config --global user.name "${{ github.actor }}"
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
 
-      - name: Prepare gh-pages Branch
+      # Step 3: Generate Release Notes
+      - name: Generate Release Notes
         run: |
-          git fetch origin gh-pages || git checkout --orphan gh-pages
-          git checkout gh-pages
+          echo "# Release ${{ github.event.release.tag_name }}" > release-notes.md
+          echo "Generated on $(date)" >> release-notes.md
+          # Add extra notes if needed, e.g., detailed changelog
 
-      - name: Verificar contenido de gh-pages
-        run:
-          git ls-tree -r gh-pages
-
-      - name: Depurar variables
+      # Step 4: Commit and Push Changes to gh-pages Branch
+      - name: Commit and Push Changes
         run: |
-          echo "Repositorio: ${{github.repository}}"
-          echo "Nomre de la etiqueta: ${{github.event.release.tag_name}}"
+          git fetch origin gh-pages:gh-pages || git checkout --orphan gh-pages
+          git reset --hard
+          git add release-notes.md
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Publish Release ${{ github.event.release.tag_name }}"
+            git push origin gh-pages
+          else
+            echo "No changes to commit."
+          fi
 
+      # Step 5: Set UPLOAD_URL for the GitBook API
+      - name: Set UPLOAD_URL
+        run: |
+          echo "UPLOAD_URL=https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/release-notes.md" >> $GITHUB_ENV
+
+      # Step 6: Debug UPLOAD_URL (optional)
+      - name: Debug UPLOAD_URL
+        run: echo "UPLOAD_URL=$UPLOAD_URL"
+
+      # Step 7: Publish to GitBook
       - name: Publish to GitBook
         env:
-          UPLOAD_URL: "https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/release-notes.md"
+          UPLOAD_URL: ${{ env.UPLOAD_URL }}
         run: |
+          if [ -z "$UPLOAD_URL" ]; then
+            echo "Error: UPLOAD_URL is not set or empty"
+            exit 1
+          fi
           JSON_PAYLOAD=$(printf '{"source": "%s", "title": "Release v%s", "emoji": "1f389", "visibility": "public", "editMode": "live"}' "$UPLOAD_URL" "${{ github.event.release.tag_name }}")
           curl -v -X POST "https://api.gitbook.com/v1/spaces/${{ env.GITBOOK_SPACE }}/content/import" \
             -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "$JSON_PAYLOAD"
-
-      - name: Confirm Success
-        run: |
-          echo "Release ${{ github.event.release.tag_name }} published to GitBook with URL: ${{ env.UPLOAD_URL }}"
