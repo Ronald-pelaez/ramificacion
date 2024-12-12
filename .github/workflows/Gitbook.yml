@@ -32,8 +32,10 @@ jobs:
 
       - name: Generate Release
         run: |
+
           echo "# Release ${{ github.event.release.tag_name }}" > release.md
           echo "Generated on $(date)" >> release.md
+
 
       - name: Commit and Push Changes
         run: |
