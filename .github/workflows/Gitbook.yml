@@ -66,3 +66,5 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "$JSON_PAYLOAD"
+
+
