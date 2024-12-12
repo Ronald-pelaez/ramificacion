@@ -1,82 +1,68 @@
-name: Publicar en GitBook
+name: Publish Release Notes to GitBook
 
 on:
-  push:
-    branches:
-      - main
-      - 'releases/**'
+  release:
+    types:
+      - published
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # Permisos necesarios para modificar la rama gh-pages
+
+    env:
+      VERSION: ${{ github.event.release.tag_name }}
+      GITBOOK_SPACE: ${{ secrets.GB_SPACE_ID }}
+      GITBOOK_API_TOKEN: ${{ secrets.GITBOOK_API_TOKEN }}
 
     steps:
-      # Paso 1: Clonar el repositorio
-      - name: Check out repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # Paso 2: Crear el archivo .md con las notas del release
-      - name: Generar archivo de release
+      - name: Configure Git Identity
         run: |
-          # Extraer la versión y las notas del release
-          VERSION=${{ github.event.release.tag_name }}
-          RELEASE_CONTENT=${{ github.event.release.body }}
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
 
-          # Crear carpeta para los releases si no existe
-          mkdir -p releases
-
-          # Generar archivo .md con las notas del release
-          echo -e "# Release ${VERSION}\n\n${RELEASE_CONTENT}" > releases/${VERSION}.md
-          
-          echo "Archivo de release generado: releases/${VERSION}.md"
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-
-      # Paso 3: Subir el archivo .md a la rama gh-pages
-      - name: Subir archivo a gh-pages
+      - name: Generate Release
         run: |
-          # Cambiar a la rama gh-pages (crear si no existe)
-          git fetch origin gh-pages || git checkout --orphan gh-pages
-          git checkout gh-pages
 
-          # Mover el archivo generado
-          mv releases/${VERSION}.md .
+          echo "# Release ${{ github.event.release.tag_name }}" > release.md
+          echo "Generated on $(date)" >> release.md
 
-          # Confirmar los cambios
-          git add ${VERSION}.md
-          git commit -m "Añadir notas del release ${VERSION}"
-          git push origin gh-pages
-          
-          # Generar la URL del archivo subido
-          UPLOAD_URL="https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/${VERSION}.md"
-          echo "Archivo subido a: ${UPLOAD_URL}"
-          echo "UPLOAD_URL=${UPLOAD_URL}" >> $GITHUB_ENV
 
-      # Paso 4: Publicar en GitBook
-      - name: Publicar en GitBook
+      - name: Commit and Push Changes
         run: |
-          # Obtener variables de entorno
-          VERSION=${{ env.VERSION }}
-          UPLOAD_URL=${{ env.UPLOAD_URL }}
+          git fetch origin gh-pages:gh-pages || git checkout --orphan gh-pages
+          git reset --hard
+          git add release.md
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Publish Release ${{ github.event.release.tag_name }}"
+            git push origin gh-pages
+          else
+            echo "No changes to commit."
+          fi
 
-          # Publicar el archivo en GitBook
-          curl -X POST "https://api.gitbook.com/v1/spaces/lDjUpn42IqZ3iP1cWWjX/content/import" \
-          -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
-          -H "Content-Type: application/json" \
-          -d '{
-            "source": {
-              "url": "'"${UPLOAD_URL}"'"
-            },
-            "title": "Release '"${VERSION}"'",
-            "emoji": "1f389",
-            "visibility": "public",
-            "editMode": "live"
-          }'
-
-      # Paso 5: Mostrar mensaje de confirmación
-      - name: Confirmación
+      - name: Set UPLOAD_URL
         run: |
-          echo "Release ${VERSION} publicado en GitBook con URL: ${UPLOAD_URL}"
+          echo "UPLOAD_URL=https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/release.md" >> $GITHUB_ENV
+
+      - name: Publish to GitBook
+        env:
+          UPLOAD_URL: ${{ env.UPLOAD_URL }}
+        run: |
+          if [ -z "$UPLOAD_URL" ]; then
+            echo "Error: UPLOAD_URL is not set or empty"
+            exit 1
+          fi
+          JSON_PAYLOAD=$(printf '{"source": "website","url": "https://github.com/Ronald-pelaez/ramificacion/blob/gh-pages/release.md", "title": "Release v%s", "emoji": "1f389", "visibility": "public", "editMode": "live"}' "$UPLOAD_URL" "${{ github.event.release.tag_name }}")
+          curl -v -X POST "https://api.gitbook.com/v1/spaces/lDjUpn42IqZ3iP1cWWjX/content/import" \
+            -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$JSON_PAYLOAD"
