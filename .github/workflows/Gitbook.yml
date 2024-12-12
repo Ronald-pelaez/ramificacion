@@ -30,16 +30,16 @@ jobs:
           git config --global user.name "${{ github.actor }}"
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
 
-      - name: Generate Release Notes
+      - name: Generate Release
         run: |
-          echo "# Release ${{ github.event.release.tag_name }}" > release-notes.md
-          echo "Generated on $(date)" >> release-notes.md
+          echo "# Release ${{ github.event.release.tag_name }}" > release.md
+          echo "Generated on $(date)" >> release.md
 
       - name: Commit and Push Changes
         run: |
           git fetch origin gh-pages:gh-pages || git checkout --orphan gh-pages
           git reset --hard
-          git add release-notes.md
+          git add release.md
           if [ -n "$(git status --porcelain)" ]; then
             git commit -m "Publish Release ${{ github.event.release.tag_name }}"
             git push origin gh-pages
@@ -49,7 +49,7 @@ jobs:
 
       - name: Set UPLOAD_URL
         run: |
-          echo "UPLOAD_URL=https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/release-notes.md" >> $GITHUB_ENV
+          echo "UPLOAD_URL=https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/release.md" >> $GITHUB_ENV
 
       - name: Publish to GitBook
         env:
@@ -59,8 +59,8 @@ jobs:
             echo "Error: UPLOAD_URL is not set or empty"
             exit 1
           fi
-          JSON_PAYLOAD=$(printf '{"source": "%s", "title": "Release v%s", "emoji": "1f389", "visibility": "public", "editMode": "live"}' "$UPLOAD_URL" "${{ github.event.release.tag_name }}")
-          curl -v -X POST "https://api.gitbook.com/v1/spaces/${{ env.GITBOOK_SPACE }}/content/import" \
+          JSON_PAYLOAD=$(printf '{"source": "website","url": "https://github.com/Ronald-pelaez/ramificacion/blob/gh-pages/release.md", "title": "Release v%s", "emoji": "1f389", "visibility": "public", "editMode": "live"}' "$UPLOAD_URL" "${{ github.event.release.tag_name }}")
+          curl -v -X POST "https://api.gitbook.com/v1/spaces/lDjUpn42IqZ3iP1cWWjX/content/import" \
             -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "$JSON_PAYLOAD"
