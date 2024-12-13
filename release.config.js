@@ -6,13 +6,13 @@ const config = {
         [
             '@semantic-release/changelog',
             {
-                changelogFile: 'docs/CHANGELOG.md' // Ruta personalizada para el changelog
+                changelogFile: 'docs/CHANGELOG.md'
             }
         ],
         [
             '@semantic-release/git',
             {
-                assets: ['dist/**/*', 'package.json', 'docs/CHANGELOG.md'], // Actualiza la ruta aquí también
+                assets: ['dist/**/*', 'package.json', 'docs/CHANGELOG.md'],
                 message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}'
             }
         ],
