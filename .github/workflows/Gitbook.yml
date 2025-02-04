@@ -1,70 +1,35 @@
-name: Publish Release Notes to GitBook
-
-on:
-  release:
-    types:
-      - published
-
-permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+on: #Activa el flujo de trabajo
+  push: #Determina que el flujo de trabajo se va a activar solo cuando se haga push
+    branches:
+      - 'main' #Indica que solo va a activarse con la rama main
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
+  release:
+    runs-on: ubuntu-latest #sistema en que se va a ejecutar el workflow (este es el recomendado)
 
-    env:
-      VERSION: ${{ github.event.release.tag_name }}
-      GITBOOK_SPACE: ${{ secrets.GB_SPACE_ID }}
-      GITBOOK_API_TOKEN: ${{ secrets.GITBOOK_API_TOKEN }}
+    permissions: #Permisos para que el workfolw realice las funciones necesarias.
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
 
     steps:
-      - name: Checkout Repository
+      - name: Check out repository #Analiza el repositorio
         uses: actions/checkout@v4
+
+      - name: Set up Node.js #Activa la herramienta node.js
+        uses: actions/setup-node@v4
         with:
-          fetch-depth: 0
+          node-version: '21' #la versión con la que se va a trabajar
 
-      - name: Configure Git Identity
+
+      - name: Install dependencies #instala las dependencias de npm necesarias para el proceso
         run: |
-          git config --global user.name "${{ github.actor }}"
-          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          npm install
 
-      - name: Generate Release
+      - name: Run semantic-release #Corre las dependencias del paquete de npm
         run: |
-
-          echo "# Release ${{ github.event.release.tag_name }}" > release.md
-          echo "Generated on $(date)" >> release.md
-
-
-      - name: Commit and Push Changes
-        run: |
-          git fetch origin gh-pages:gh-pages || git checkout --orphan gh-pages
-          git reset --hard
-          git add release.md
-          if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Publish Release ${{ github.event.release.tag_name }}"
-            git push origin gh-pages
-          else
-            echo "No changes to commit."
-          fi
-
-      - name: Set UPLOAD_URL
-        run: |
-          echo "UPLOAD_URL=https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/release.md" >> $GITHUB_ENV
-
-      - name: Publish to GitBook
-        env:
-          UPLOAD_URL: ${{ env.UPLOAD_URL }}
-        run: |
-          if [ -z "$UPLOAD_URL" ]; then
-            echo "Error: UPLOAD_URL is not set or empty"
-            exit 1
-          fi
-          JSON_PAYLOAD=$(printf '{"source": "website","url": "https://github.com/Ronald-pelaez/ramificacion/blob/gh-pages/release.md", "title": "Release v%s", "emoji": "1f389", "visibility": "public", "editMode": "live"}' "$UPLOAD_URL" "${{ github.event.release.tag_name }}")
-          curl -v -X POST "https://api.gitbook.com/v1/spaces/lDjUpn42IqZ3iP1cWWjX/content/import" \
-            -H "Authorization: Bearer ${{ secrets.GITBOOK_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d "$JSON_PAYLOAD"
-
-
+          npx semantic-release
+        env: #envía los tokens 
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN}}
