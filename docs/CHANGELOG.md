@@ -1,3 +1,10 @@
+## [8.16.6](https://github.com/Ronald-pelaez/ramificacion/compare/v8.16.5...v8.16.6) (2025-03-19)
+
+
+### Bug Fixes
+
+* "(VSFT-3322)-solucionBotonPago" ([69bc40f](https://github.com/Ronald-pelaez/ramificacion/commit/69bc40f012e0baf661900be594f71ea8c2d84b6d))
+
 ## [8.16.5](https://github.com/Ronald-pelaez/ramificacion/compare/v8.16.4...v8.16.5) (2025-03-19)
 
 
