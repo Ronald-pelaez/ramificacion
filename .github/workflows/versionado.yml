@@ -1,33 +1,32 @@
-on: #Activa el flujo de trabajo
-  push: #Determina que el flujo de trabajo se va a activar solo cuando se haga push
+on: # Activa el flujo de trabajo
+  push: # Determina que el flujo de trabajo se activará solo cuando se haga push
     branches:
-      - 'main' #Indica que solo va a activarse con la rama main
+      - 'main' # Indica que solo se activará con la rama main
 
 jobs:
   release:
-    runs-on: ubuntu-latest #sistema en que se va a ejecutar el workflow (este es el recomendado)
+    runs-on: ubuntu-latest # Sistema en el que se ejecutará el workflow (recomendado)
 
-permissions: #Permisos para que el workfolw realice las funciones necesarias.
-  contents: write
-  issues: write
-  pull-requests: write
-  id-token: write
+    permissions: # Permisos para que el workflow realice las funciones necesarias
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
 
-steps:
-  - name: Check out repository #Analiza el repositorio
-    uses: actions/checkout@v4
-  - name: Set up Node.js #Activa la herramienta node.js
-    uses: actions/setup-node@v4
-    with:
-    node-version: '21' #la versión con la que se va a trabajar
+    steps:
+      - name: Check out repository # Clona el repositorio
+        uses: actions/checkout@v4
 
-  - name: Install dependencies #instala las dependencias de npm necesarias para el proceso
-    run: |
-      npm install
+      - name: Set up Node.js # Configura Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '21' # Versión de Node.js a utilizar
 
-  - name: Run semantic-release #Corre las dependencias del paquete de npm
-    run: |
-         npx semantic-release
-    env: #envía los tokens
-    GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-    NPM_TOKEN: ${{ secrets.NPM_TOKEN}}
+      - name: Install dependencies # Instala las dependencias necesarias
+        run: npm install
+
+      - name: Run semantic-release # Ejecuta semantic-release
+        run: npx semantic-release
+        env: # Define las variables de entorno necesarias
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
