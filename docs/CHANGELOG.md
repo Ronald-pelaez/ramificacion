@@ -1,3 +1,11 @@
+## [8.16.5](https://github.com/Ronald-pelaez/ramificacion/compare/v8.16.4...v8.16.5) (2025-03-19)
+
+
+### Bug Fixes
+
+* "(VSFT-3322)-0" ([f4b6cb6](https://github.com/Ronald-pelaez/ramificacion/commit/f4b6cb62e1006128ba05e585a8b9c04e4f4519ab))
+* "(VSFT-3322)-0" ([e7d96b2](https://github.com/Ronald-pelaez/ramificacion/commit/e7d96b25ecbcde2c9c4846e3174b12d8ba974e27))
+
 ## [8.16.4](https://github.com/Ronald-pelaez/ramificacion/compare/v8.16.3...v8.16.4) (2024-12-17)
 
 
