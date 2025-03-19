@@ -1,3 +1,11 @@
+## [8.16.10](https://github.com/Ronald-pelaez/ramificacion/compare/v8.16.9...v8.16.10) (2025-03-19)
+
+
+### Bug Fixes
+
+* "solución bug en producción 1" ([c488382](https://github.com/Ronald-pelaez/ramificacion/commit/c4883829947bd3811604049f21185b8a45b79ed5))
+* "solución bug en producción 2" ([2a6c13d](https://github.com/Ronald-pelaez/ramificacion/commit/2a6c13d2a2627a62f9464eed3a1f7101b5906b0a))
+
 ## [8.16.9](https://github.com/Ronald-pelaez/ramificacion/compare/v8.16.8...v8.16.9) (2025-03-19)
 
 
