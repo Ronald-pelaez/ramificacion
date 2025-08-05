@@ -1,3 +1,10 @@
+## [8.17.1](https://github.com/Ronald-pelaez/ramificacion/compare/v8.17.0...v8.17.1) (2025-08-05)
+
+
+### Bug Fixes
+
+* "(VSFT-888)-prueba entrega 6" ([2caeefd](https://github.com/Ronald-pelaez/ramificacion/commit/2caeefdcf1fb40806a9bae5cc73012b338c08cb1))
+
 # [8.17.0](https://github.com/Ronald-pelaez/ramificacion/compare/v8.16.22...v8.17.0) (2025-08-05)
 
 
