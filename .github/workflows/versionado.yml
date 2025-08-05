@@ -28,5 +28,5 @@ jobs:
       - name: Run semantic-release # Ejecuta semantic-release
         run: npx semantic-release
         env: # Define las variables de entorno necesarias
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN1 }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN2 }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN1 }}
