@@ -1,3 +1,10 @@
+# [8.18.0](https://github.com/Ronald-pelaez/ramificacion/compare/v8.17.1...v8.18.0) (2025-08-05)
+
+
+### Features
+
+* "(VSFT-777)-prueba entrega 7" ([eb9d5b9](https://github.com/Ronald-pelaez/ramificacion/commit/eb9d5b9fbf6a3a36ae15ef82b520f8c788d7cbae))
+
 ## [8.17.1](https://github.com/Ronald-pelaez/ramificacion/compare/v8.17.0...v8.17.1) (2025-08-05)
 
 
